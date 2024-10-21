@@ -24,14 +24,13 @@ public class NewCurrency extends HttpServlet {
 
         resp.setContentType("application/json");
         JSONArray jsonArray = new JSONArray();
-
         PrintWriter out = resp.getWriter();
         Connection con = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
-            //подключение к бд
+
             con = DataSourceConfig.getDataSource().getConnection();
             String currencyName = req.getParameter("currency");
 
