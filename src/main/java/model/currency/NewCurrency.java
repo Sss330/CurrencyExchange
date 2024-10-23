@@ -29,11 +29,11 @@ public class NewCurrency extends HttpServlet {
         try {
             con = DataSourceConfig.getDataSource().getConnection();
 
-            String currencyName = req.getParameter("name");
-            String currencyCode = req.getParameter("code");
-            String currencySing = req.getParameter("sign");
+            String Name = req.getParameter("name");
+            String Code = req.getParameter("code");
+            String Sing = req.getParameter("sign");
 
-            if (currencyName == null || currencyCode == null || currencySing == null) {
+            if (Name == null || Code == null || Sing == null) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 out.println("{\"error\": \"Missing required fields.\"}");
                 return;
@@ -41,7 +41,7 @@ public class NewCurrency extends HttpServlet {
 
             String checkQuery = "SELECT COUNT(*) FROM currencies WHERE code = ?";
             pstmt = con.prepareStatement(checkQuery);
-            pstmt.setString(1, currencyCode);
+            pstmt.setString(1, Code);
             rs = pstmt.executeQuery();
 
             if (rs.next() && rs.getInt(1) > 0) {
@@ -53,17 +53,17 @@ public class NewCurrency extends HttpServlet {
             String insertQuery = "INSERT INTO currencies (fullName, code, sing) VALUES (?, ?, ?)";
             pstmt = con.prepareStatement(insertQuery);
 
-            pstmt.setString(1, currencyName);
-            pstmt.setString(2, currencyCode);
-            pstmt.setString(3, currencySing);
+            pstmt.setString(1, Name);
+            pstmt.setString(2, Code);
+            pstmt.setString(3, Sing);
 
             int affectedRows = pstmt.executeUpdate();
 
             if (affectedRows > 0) {
                 JSONObject jsonResponse = new JSONObject();
-                jsonResponse.put("name", currencyName);
-                jsonResponse.put("code", currencyCode);
-                jsonResponse.put("sign", currencySing);
+                jsonResponse.put("name", Name);
+                jsonResponse.put("code", Code);
+                jsonResponse.put("sign", Sing);
 
                 resp.setStatus(HttpServletResponse.SC_CREATED);
                 out.println(jsonResponse.toString());
