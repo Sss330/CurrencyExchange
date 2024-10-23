@@ -2,6 +2,7 @@ package model.currency;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import utils.example.config.DataSourceConfig;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,16 +21,13 @@ public class SpecificCurrency extends HttpServlet {
 
         resp.setContentType("application/json");
         PrintWriter out = resp.getWriter();
-
         JSONArray jsonArray = new JSONArray();
-
         String selectedCode = req.getParameter("selectedCode");
+        Connection con = null;
 
         try {
-            //подключение к бд
-            Class.forName("org.sqlite.JDBC");
-            String url = "jdbc:sqlite:C:\\Users\\podvo\\sqlite\\ExchangeCurrencies.db";
-            Connection con = DriverManager.getConnection(url);
+
+            con = DataSourceConfig.getDataSource().getConnection();
 
             String query = "SELECT * FROM currencies WHERE code = ?";
             PreparedStatement pstmt = con.prepareStatement(query);
@@ -54,8 +52,6 @@ public class SpecificCurrency extends HttpServlet {
                 jsonArray.put(jsonObject);
 
             }
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

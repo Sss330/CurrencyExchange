@@ -1,6 +1,6 @@
 package model.currency;
 
-import org.json.JSONArray;
+import org.json.JSONObject;
 import utils.example.config.DataSourceConfig;
 
 import javax.servlet.annotation.WebServlet;
@@ -14,41 +14,76 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-//todo реализовать метод
-
 @WebServlet("/addNewCurrency")
 public class NewCurrency extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-
         resp.setContentType("application/json");
-        JSONArray jsonArray = new JSONArray();
         PrintWriter out = resp.getWriter();
+
         Connection con = null;
         PreparedStatement pstmt = null;
         ResultSet rs = null;
 
         try {
-
             con = DataSourceConfig.getDataSource().getConnection();
-            String currencyName = req.getParameter("currency");
 
-            String query = "insert into currencies (currencyName) values (?)  ";
-            pstmt = con.prepareStatement(query);
+            String currencyName = req.getParameter("name");
+            String currencyCode = req.getParameter("code");
+            String currencySing = req.getParameter("sign");
 
-            pstmt.setString(1, currencyName);
-            pstmt.executeUpdate();
-
-
-            while (rs.next()) {
-
-
+            if (currencyName == null || currencyCode == null || currencySing == null) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.println("{\"error\": \"Missing required fields.\"}");
+                return;
             }
 
+            String checkQuery = "SELECT COUNT(*) FROM currencies WHERE code = ?";
+            pstmt = con.prepareStatement(checkQuery);
+            pstmt.setString(1, currencyCode);
+            rs = pstmt.executeQuery();
 
+            if (rs.next() && rs.getInt(1) > 0) {
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                out.println("{\"error\": \"Currency with this code already exists.\"}");
+                return;
+            }
+
+            String insertQuery = "INSERT INTO currencies (fullName, code, sing) VALUES (?, ?, ?)";
+            pstmt = con.prepareStatement(insertQuery);
+
+            pstmt.setString(1, currencyName);
+            pstmt.setString(2, currencyCode);
+            pstmt.setString(3, currencySing);
+
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                JSONObject jsonResponse = new JSONObject();
+                jsonResponse.put("name", currencyName);
+                jsonResponse.put("code", currencyCode);
+                jsonResponse.put("sign", currencySing);
+
+                resp.setStatus(HttpServletResponse.SC_CREATED);
+                out.println(jsonResponse.toString());
+            } else {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                out.println("{\"error\": \"Failed to add the currency.\"}");
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.println(errorResponse.toString());
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (pstmt != null) pstmt.close();
+                if (con != null) con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

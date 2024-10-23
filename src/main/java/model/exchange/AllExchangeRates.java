@@ -2,6 +2,7 @@ package model.exchange;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import utils.example.config.DataSourceConfig;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -24,11 +25,9 @@ public class AllExchangeRates extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         try {
+            Connection con = null;
+            con = DataSourceConfig.getDataSource().getConnection();
 
-            Class.forName("org.sqlite.JDBC");
-
-            String url = "jdbc:sqlite:C:\\Users\\podvo\\sqlite\\ExchangeCurrencies.db";
-            Connection con = DriverManager.getConnection(url);
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT rate FROM ExchangeRates");
 
@@ -43,7 +42,7 @@ public class AllExchangeRates extends HttpServlet {
             stmt.close();
             con.close();
 
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException  e) {
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("error", e.getMessage());
             out.println(errorResponse.toString());

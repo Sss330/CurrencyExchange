@@ -10,8 +10,9 @@ import java.sql.*;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import utils.example.config.DataSourceConfig;
 
-//todo доделать коды ошибок в блоке catch
+
 @WebServlet("/Currencies")
 public class AllCurrencies extends HttpServlet {
 
@@ -26,9 +27,8 @@ public class AllCurrencies extends HttpServlet {
 
         try {
             //подключение к бд
-            Class.forName("org.sqlite.JDBC");
-            String url = "jdbc:sqlite:C:\\Users\\podvo\\sqlite\\ExchangeCurrencies.db";
-            Connection con = DriverManager.getConnection(url);
+            Connection con = null;
+            con = DataSourceConfig.getDataSource().getConnection();
 
             Statement stmt = con.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM Currencies");
@@ -52,7 +52,7 @@ public class AllCurrencies extends HttpServlet {
             rs.close();
             stmt.close();
             con.close();
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("error", e.getMessage());
             out.println(errorResponse.toString());

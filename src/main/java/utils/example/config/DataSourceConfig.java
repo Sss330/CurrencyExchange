@@ -8,10 +8,10 @@ import javax.sql.DataSource;
 
 public class DataSourceConfig {
     private static final HikariDataSource dataSource;
-
+    private final static String DATABASE_URL = "jdbc:sqlite::resource:ExchangeCurrencies.db";
     static {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:sqlite:your_database_name_here.db");
+        config.setJdbcUrl(DATABASE_URL);
         config.setDriverClassName("org.sqlite.JDBC");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(5);
