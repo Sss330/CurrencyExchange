@@ -1,4 +1,4 @@
-package utils.example.config;
+package repository;
 
 
 import com.zaxxer.hikari.HikariConfig;

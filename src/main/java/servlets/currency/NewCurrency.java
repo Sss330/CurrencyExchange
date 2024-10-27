@@ -1,7 +1,7 @@
-package model.currency;
+package servlets.currency;
 
 import org.json.JSONObject;
-import utils.example.config.DataSourceConfig;
+import repository.DataSourceConfig;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -14,7 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@WebServlet("/addNewCurrency")
+@WebServlet("/AddNewCurrency")
 public class NewCurrency extends HttpServlet {
 
     @Override
@@ -29,19 +29,19 @@ public class NewCurrency extends HttpServlet {
         try {
             con = DataSourceConfig.getDataSource().getConnection();
 
-            String Name = req.getParameter("name");
-            String Code = req.getParameter("code");
-            String Sing = req.getParameter("sign");
+            String name = req.getParameter("name");
+            String code = req.getParameter("code");
+            String sign = req.getParameter("sign");
 
-            if (Name == null || Code == null || Sing == null) {
+            if (name == null || code == null || sign == null) {
                 resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.println("{\"error\": \"Missing required fields.\"}");
+                out.println("{\"error\": \"Missign required fields.\"}");
                 return;
             }
 
             String checkQuery = "SELECT COUNT(*) FROM currencies WHERE code = ?";
             pstmt = con.prepareStatement(checkQuery);
-            pstmt.setString(1, Code);
+            pstmt.setString(1, code);
             rs = pstmt.executeQuery();
 
             if (rs.next() && rs.getInt(1) > 0) {
@@ -50,20 +50,20 @@ public class NewCurrency extends HttpServlet {
                 return;
             }
 
-            String insertQuery = "INSERT INTO currencies (fullName, code, sing) VALUES (?, ?, ?)";
+            String insertQuery = "INSERT INTO currencies (fullName, code, sign) VALUES (?, ?, ?)";
             pstmt = con.prepareStatement(insertQuery);
 
-            pstmt.setString(1, Name);
-            pstmt.setString(2, Code);
-            pstmt.setString(3, Sing);
+            pstmt.setString(1, name);
+            pstmt.setString(2, code);
+            pstmt.setString(3, sign);
 
             int affectedRows = pstmt.executeUpdate();
 
             if (affectedRows > 0) {
                 JSONObject jsonResponse = new JSONObject();
-                jsonResponse.put("name", Name);
-                jsonResponse.put("code", Code);
-                jsonResponse.put("sign", Sing);
+                jsonResponse.put("name", name);
+                jsonResponse.put("code", code);
+                jsonResponse.put("sign", sign);
 
                 resp.setStatus(HttpServletResponse.SC_CREATED);
                 out.println(jsonResponse.toString());

@@ -1,8 +1,8 @@
-package model.currency;
+package servlets.currency;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import utils.example.config.DataSourceConfig;
+import repository.DataSourceConfig;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,7 +15,7 @@ import java.sql.*;
 //todo доделать коды ошибок в блоке catch
 
 @WebServlet("/GetSpecificCurrency")
-public class SpecificCurrency extends HttpServlet {
+public class CertainCurrency extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
@@ -30,6 +30,9 @@ public class SpecificCurrency extends HttpServlet {
             con = DataSourceConfig.getDataSource().getConnection();
 
             String query = "SELECT * FROM currencies WHERE code = ?";
+            if(true){
+            //проверить гет параметры
+            }
             PreparedStatement pstmt = con.prepareStatement(query);
 
 

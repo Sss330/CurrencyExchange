@@ -63,7 +63,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.3.1</version>
                 <configuration>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <failOnMissignWebXml>false</failOnMissignWebXml>
                 </configuration>
             </plugin>
 

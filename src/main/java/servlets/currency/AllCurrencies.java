@@ -1,4 +1,4 @@
-package model.currency;
+package servlets.currency;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -10,7 +10,7 @@ import java.sql.*;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import utils.example.config.DataSourceConfig;
+import repository.DataSourceConfig;
 
 
 @WebServlet("/Currencies")
