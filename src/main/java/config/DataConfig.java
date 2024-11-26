@@ -1,4 +1,4 @@
-package dao;
+package config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -6,7 +6,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 
 public class DataConfig {
-    private static final String URL = "jdbc:sqlite:C:\\Users\\podvo\\IdeaProjects\\CurrencyExchange\\src\\main\\resources\\ExchangeCurrency.db";
+    private static final String URL = "jdbc:sqlite::resource:identifier.sqlite";
 
     private static final HikariDataSource dataSource;
 

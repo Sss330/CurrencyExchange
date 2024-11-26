@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ExchangeRateModel {
+public class ExchangeRate {
     private Long id;
     private String BaseCurrencyId;
     private String TargetCurrencyId;
