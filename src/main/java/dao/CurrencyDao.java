@@ -7,42 +7,48 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.sql.DriverManager.getConnection;
 
 public class CurrencyDao {
-    final String queryToGetCurrencies = "select ID,Code,FullName,Sign from Сurrencies";
-    //final String QueryToGetSpecificCurrencies = "select ";
 
     public List<Currency> getAllCurrencies() throws SQLException {
 
         List<Currency> currencies = new ArrayList<>();
 
-
         try (Connection connection = DataConfig.getDataSource().getConnection()) {
 
             Statement statement = connection.createStatement();
+            final String queryToGetCurrencies = "select * from Currencies";
             ResultSet rs = statement.executeQuery(queryToGetCurrencies);
 
-            while (rs.next()) {
-                Currency currencyModel = mapToCurrency(rs);
+            while (rs.next())
+                currencies.add(mapToCurrency(rs));
 
-                currencies.add(currencyModel);
-            }
 
-        } catch (SQLException e) {
-            throw new SQLException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return currencies;
     }
 
-    public List<Currency> getSpecificCurrency() {
-        List<Currency> Currency = new ArrayList<>();
+    public List<Currency> getSpecificCurrency(String Code) throws SQLException {
+        List<Currency> specificCurrency = new ArrayList<>();
 
+        final String queryToGetSpecificCurrency = "select * from Currencies where Code = ?";
 
-        PreparedStatement statement = null;
-        return Currency;
+        try (Connection connection = DataConfig.getDataSource().getConnection()) {
+            PreparedStatement prepareStatement = connection.prepareStatement(queryToGetSpecificCurrency);
+            prepareStatement.setString(1, Code);
+            ResultSet rs = prepareStatement.executeQuery();
+
+            while (rs.next())
+                specificCurrency.add(mapToCurrency(rs));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return specificCurrency;
     }
-
 
     private static Currency mapToCurrency(ResultSet rs) throws SQLException {
         return Currency.builder()

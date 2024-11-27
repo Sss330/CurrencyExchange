@@ -12,23 +12,24 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-@WebServlet("/currencies")
-public class CurrenciesServlet extends HttpServlet {
-    private final CurrencyDao currencyDao = new CurrencyDao();
+@WebServlet("/currency")
+public class SpecificCurrency extends HttpServlet {
     private final Gson gson = new Gson();
+    CurrencyDao currencyDao = new CurrencyDao();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         resp.setContentType("application/json");
+        String code = req.getParameter("code");
 
         try {
-            List<Currency> currencies = currencyDao.getAllCurrencies();
+            List<Currency> specificCurrency = currencyDao.getSpecificCurrency(code);
 
-            String jsonResponse = gson.toJson(currencies);
-
+            String jsonResponse = gson.toJson(specificCurrency);
             resp.getWriter().write(jsonResponse);
         } catch (SQLException | IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+
     }
 }
