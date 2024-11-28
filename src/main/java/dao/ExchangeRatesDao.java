@@ -10,8 +10,6 @@ public class ExchangeRatesDao {
 
     private List<ExchangeRate> getAllExchangeRates() {
         List<ExchangeRate> exchangeRates = new ArrayList<>();
-
-
         return exchangeRates;
     }
 }

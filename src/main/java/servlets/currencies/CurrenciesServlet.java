@@ -14,6 +14,7 @@ import java.util.List;
 
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
+
     private final CurrencyDao currencyDao = new CurrencyDao();
     private final Gson gson = new Gson();
 
