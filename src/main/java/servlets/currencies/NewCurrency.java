@@ -25,14 +25,12 @@ public class NewCurrency extends HttpServlet {
 
 
         try {
-            List<Currency> newCurrency = currencyDao.postNewCurrency(currencyCode, currencyName, currencySign);
+           Currency newCurrency = currencyDao.addNewCurrency(currencyCode, currencyName, currencySign);
 
             String jsonResponse = gson.toJson(newCurrency);
             resp.getWriter().write(jsonResponse);
-
-        } catch (SQLException e) {
-           e.printStackTrace();
-        } catch (IOException e) {
+            resp.setStatus(201);
+        }catch (SQLException | IOException e) {
             e.printStackTrace();
         }
 

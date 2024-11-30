@@ -5,11 +5,9 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ExchangeRate {
+public class ExchangeRateResponse {
     private Long id;
-    private Long baseCurrencyId;
-    private Long targetCurrencyId;
+    private Currency baseCurrency;
+    private Currency targetCurrency;
     private Double rate;
 }
-
-

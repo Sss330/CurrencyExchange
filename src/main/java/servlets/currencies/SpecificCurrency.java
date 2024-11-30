@@ -24,9 +24,9 @@ public class SpecificCurrency extends HttpServlet {
 
         try {
             List<Currency> specificCurrency = currencyDao.getSpecificCurrency(code);
-
             String jsonResponse = gson.toJson(specificCurrency);
             resp.getWriter().write(jsonResponse);
+
         } catch (SQLException | IOException e) {
             e.printStackTrace();
         }

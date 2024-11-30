@@ -37,7 +37,9 @@ public class CurrencyDao {
 
         try (Connection connection = DataConfig.getDataSource().getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(queryToGetSpecificCurrency);
+
             prepareStatement.setString(1, code);
+
             ResultSet rs = prepareStatement.executeQuery();
 
             while (rs.next())
@@ -50,15 +52,16 @@ public class CurrencyDao {
         return specificCurrency;
     }
 
-    public List<Currency> postNewCurrency(String code, String name, String sign) throws SQLException {
-        List<Currency> newCurrency = new ArrayList<>();
-        final String queryToAddNewCurrency = "INSERT INTO Currencies (code, name, sign) VALUES (?, ?, ?)";
+    public Currency addNewCurrency(String code, String fullName, String sign) throws SQLException {
 
+        final String queryToAddNewCurrency = "INSERT INTO Currencies (Code, fullName, Sign) VALUES (?, ?, ?)";
+
+        Currency currency = null;
         try (Connection connection = DataConfig.getDataSource().getConnection()) {
             PreparedStatement prepareStatement = connection.prepareStatement(queryToAddNewCurrency, Statement.RETURN_GENERATED_KEYS);
 
             prepareStatement.setString(1, code);
-            prepareStatement.setString(2, name);
+            prepareStatement.setString(2, fullName);
             prepareStatement.setString(3, sign);
 
             int rowsAffected = prepareStatement.executeUpdate();
@@ -66,21 +69,19 @@ public class CurrencyDao {
             if (rowsAffected > 0) {
                 try (ResultSet rs = prepareStatement.getGeneratedKeys()) {
                     if (rs.next()) {
-                        Currency currency = Currency.builder()
+                        currency = Currency.builder()
                                 .id(rs.getLong(1))
                                 .code(code)
-                                .fullName(name)
+                                .fullName(fullName)
                                 .sign(sign)
                                 .build();
-                        newCurrency.add(currency);
                     }
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        return newCurrency;
+        return currency;
     }
 
     private static Currency mapToCurrency(ResultSet rs) throws SQLException {
