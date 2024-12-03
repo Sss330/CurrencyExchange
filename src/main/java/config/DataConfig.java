@@ -2,12 +2,10 @@ package config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-
 import javax.sql.DataSource;
 
 public class DataConfig {
     private static final String URL = "jdbc:sqlite:C:\\Users\\podvo\\IdeaProjects\\CurrencyExchange\\src\\main\\resources\\identifier.sqlite";
-
     private static final HikariDataSource dataSource;
 
     static {
@@ -19,7 +17,6 @@ public class DataConfig {
         config.setIdleTimeout(30000);
         config.setConnectionTimeout(30000);
         config.setMaxLifetime(1800000);
-
         dataSource = new HikariDataSource(config);
     }
 

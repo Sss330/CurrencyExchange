@@ -2,15 +2,11 @@ package dao;
 
 import config.DataConfig;
 import model.Currency;
-import model.ExchangeRate;
 import model.ExchangeRateResponse;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +15,7 @@ public class ExchangeRateDao {
     public List<ExchangeRateResponse> getAllExchangeRates() {
         List<ExchangeRateResponse> exchangeRates = new ArrayList<>();
 
-        final String queryToGetAllExchangeRates = "SELECT \n" +
+        final String queryToGetAllExchangeRates = "select \n" +
                 "    er.ID AS ExchangeRateId,\n" +
                 "    bc.ID AS BaseCurrencyId,\n" +
                 "    bc.Code AS BaseCurrencyCode,\n" +
@@ -41,11 +37,86 @@ public class ExchangeRateDao {
             while (rs.next()) {
                 exchangeRates.add(mapToExchangeRateResponse(rs));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return exchangeRates;
     }
+
+    public List<ExchangeRateResponse> getExchangeRateById(Long baseCurrency, Long targetCurrency)  {
+        List<ExchangeRateResponse> specificExchangeRates = new ArrayList<>();
+        final String queryToGetSpecificExchangeRate = """
+            SELECT 
+                er.ID AS ExchangeRateId,
+                bc.ID AS BaseCurrencyId,
+                bc.Code AS BaseCurrencyCode,
+                bc.FullName AS BaseCurrencyName,
+                bc.Sign AS BaseCurrencySign,
+                tc.ID AS TargetCurrencyId,
+                tc.Code AS TargetCurrencyCode,
+                tc.FullName AS TargetCurrencyName,
+                tc.Sign AS TargetCurrencySign,
+                er.Rate
+            FROM ExchangeRates er
+            JOIN Currencies bc ON er.BaseCurrencyId = bc.ID
+            JOIN Currencies tc ON er.TargetCurrencyId = tc.ID
+            WHERE bc.ID = ? AND tc.ID = ?;
+            """;
+
+        try (Connection connection = DataConfig.getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(queryToGetSpecificExchangeRate)) {
+
+
+            statement.setLong(1, baseCurrency);
+            statement.setLong(2, targetCurrency);
+
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    specificExchangeRates.add(mapToExchangeRateResponse(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return specificExchangeRates;
+    }
+
+    public ExchangeRateResponse addNewExchangeRate(long baseCurrencyId, long targetCurrencyId, BigDecimal rate) throws SQLException {
+
+        final String queryToAddRate = "INSERT INTO ExchangeRates (BaseCurrencyId, TargetCurrencyId, Rate) VALUES (?, ?, ?)";
+
+        try (Connection connection = DataConfig.getDataSource().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(queryToAddRate, Statement.RETURN_GENERATED_KEYS)) {
+
+            preparedStatement.setLong(1, baseCurrencyId);
+            preparedStatement.setLong(2, targetCurrencyId);
+            preparedStatement.setBigDecimal(3, rate);
+
+
+            int affectedRows = preparedStatement.executeUpdate();
+            if (affectedRows == 0)
+                throw new SQLException();
+
+
+            try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    long newId = generatedKeys.getLong(1);
+
+                    return ExchangeRateResponse.builder()
+                            .id(newId)
+                            .baseCurrency(Currency.builder().id(baseCurrencyId).build())
+                            .targetCurrency(Currency.builder().id(targetCurrencyId).build())
+                            .rate((rate))
+                            .build();
+                } else {
+                    throw new SQLException();
+                }
+            }
+        }
+    }
+
+
 
 
     public static ExchangeRateResponse mapToExchangeRateResponse(ResultSet rs) throws SQLException {
@@ -63,29 +134,18 @@ public class ExchangeRateDao {
                 .sign(rs.getString("TargetCurrencySign"))
                 .build();
 
-        Double rate = BigDecimal.valueOf(rs.getDouble("Rate"))
+        BigDecimal rate = BigDecimal.valueOf((rs.getBigDecimal("Rate")
                 .setScale(4, RoundingMode.HALF_UP)
-                .doubleValue();
+                .doubleValue()));
 
         return ExchangeRateResponse.builder()
                 .id(rs.getLong("ExchangeRateId"))
                 .baseCurrency(baseCurrency)
                 .targetCurrency(targetCurrency)
-                .rate(rate)
+                .rate((rate))
                 .build();
     }
 
 
-    public List<ExchangeRate> getSpecificExchangeRate(String currency) throws SQLException {
-        //заджойнить таблицы
-        final String queryToGetSpecificExchangeRate = "select";
 
-        List<ExchangeRate> specificExchangeRate = new ArrayList<>();
-        try (Connection connection = DataConfig.getDataSource().getConnection()) {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(queryToGetSpecificExchangeRate);
-        }
-
-        return specificExchangeRate;
-    }
 }

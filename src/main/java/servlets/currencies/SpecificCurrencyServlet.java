@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 @WebServlet("/currency")
-public class SpecificCurrency extends HttpServlet {
+public class SpecificCurrencyServlet extends HttpServlet {
     private final Gson gson = new Gson();
     CurrencyDao currencyDao = new CurrencyDao();
 
@@ -23,13 +23,12 @@ public class SpecificCurrency extends HttpServlet {
         String code = req.getParameter("code");
 
         try {
-            List<Currency> specificCurrency = currencyDao.getSpecificCurrency(code);
+            List<Currency> specificCurrency = currencyDao.getCurrencyByCode(code);
             String jsonResponse = gson.toJson(specificCurrency);
             resp.getWriter().write(jsonResponse);
 
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
+        } catch (IOException | SQLException e) {
+            throw new RuntimeException(e);
         }
-
     }
 }
