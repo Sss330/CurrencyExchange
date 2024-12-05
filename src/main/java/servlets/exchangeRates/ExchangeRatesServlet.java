@@ -41,6 +41,7 @@ public class ExchangeRatesServlet extends HttpServlet {
         long baseCurrencyId = Long.parseLong(req.getParameter("base"));
         long targetCurrencyId = Long.parseLong(req.getParameter("target"));
         BigDecimal rate = new BigDecimal (req.getParameter("rate"));
+
         try {
 
 

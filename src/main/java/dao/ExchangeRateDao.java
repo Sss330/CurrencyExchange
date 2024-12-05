@@ -42,30 +42,27 @@ public class ExchangeRateDao {
         }
         return exchangeRates;
     }
-
-    public List<ExchangeRateResponse> getExchangeRateById(Long baseCurrency, Long targetCurrency)  {
+    public List<ExchangeRateResponse> getExchangeRateById(Long baseCurrency, Long targetCurrency) {
         List<ExchangeRateResponse> specificExchangeRates = new ArrayList<>();
         final String queryToGetSpecificExchangeRate = """
-            SELECT 
-                er.ID AS ExchangeRateId,
-                bc.ID AS BaseCurrencyId,
-                bc.Code AS BaseCurrencyCode,
-                bc.FullName AS BaseCurrencyName,
-                bc.Sign AS BaseCurrencySign,
-                tc.ID AS TargetCurrencyId,
-                tc.Code AS TargetCurrencyCode,
-                tc.FullName AS TargetCurrencyName,
-                tc.Sign AS TargetCurrencySign,
-                er.Rate
-            FROM ExchangeRates er
-            JOIN Currencies bc ON er.BaseCurrencyId = bc.ID
-            JOIN Currencies tc ON er.TargetCurrencyId = tc.ID
-            WHERE bc.ID = ? AND tc.ID = ?;
-            """;
-
+                SELECT 
+                    er.ID AS ExchangeRateId,
+                    bc.ID AS BaseCurrencyId,
+                    bc.Code AS BaseCurrencyCode,
+                    bc.FullName AS BaseCurrencyName,
+                    bc.Sign AS BaseCurrencySign,
+                    tc.ID AS TargetCurrencyId,
+                    tc.Code AS TargetCurrencyCode,
+                    tc.FullName AS TargetCurrencyName,
+                    tc.Sign AS TargetCurrencySign,
+                    er.Rate
+                FROM ExchangeRates er
+                JOIN Currencies bc ON er.BaseCurrencyId = bc.ID
+                JOIN Currencies tc ON er.TargetCurrencyId = tc.ID
+                WHERE bc.ID = ? AND tc.ID = ?;
+                """;
         try (Connection connection = DataConfig.getDataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement(queryToGetSpecificExchangeRate)) {
-
 
             statement.setLong(1, baseCurrency);
             statement.setLong(2, targetCurrency);
@@ -93,11 +90,9 @@ public class ExchangeRateDao {
             preparedStatement.setLong(2, targetCurrencyId);
             preparedStatement.setBigDecimal(3, rate);
 
-
             int affectedRows = preparedStatement.executeUpdate();
             if (affectedRows == 0)
                 throw new SQLException();
-
 
             try (ResultSet generatedKeys = preparedStatement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
@@ -116,8 +111,58 @@ public class ExchangeRateDao {
         }
     }
 
+    public ExchangeRateResponse patchExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException {
+        final String queryToUpdateRate = """
+                UPDATE ExchangeRates er
+                JOIN Currencies bc ON er.BaseCurrencyId = bc.ID
+                JOIN Currencies tc ON er.TargetCurrencyId = tc.ID
+                SET er.Rate = ?
+                WHERE bc.Code = ? AND tc.Code = ?""";
 
+        try (Connection connection = DataConfig.getDataSource().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(queryToUpdateRate)) {
+            preparedStatement.setBigDecimal(1, rate);
+            preparedStatement.setString(2, baseCurrencyCode);
+            preparedStatement.setString(3, targetCurrencyCode);
 
+            int affectedRows = preparedStatement.executeUpdate();
+            if (affectedRows == 0) return null;
+
+            return getExchangeRateByCodes(baseCurrencyCode, targetCurrencyCode);
+        }
+    }
+
+    public ExchangeRateResponse getExchangeRateByCodes(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
+        final String query = """
+                SELECT 
+                    er.ID AS ExchangeRateId,
+                    bc.ID AS BaseCurrencyId,
+                    bc.Code AS BaseCurrencyCode,
+                    bc.FullName AS BaseCurrencyName,
+                    bc.Sign AS BaseCurrencySign,
+                    tc.ID AS TargetCurrencyId,
+                    tc.Code AS TargetCurrencyCode,
+                    tc.FullName AS TargetCurrencyName,
+                    tc.Sign AS TargetCurrencySign,
+                    er.Rate
+                FROM ExchangeRates er
+                JOIN Currencies bc ON er.BaseCurrencyId = bc.ID
+                JOIN Currencies tc ON er.TargetCurrencyId = tc.ID
+                WHERE bc.Code = ? AND tc.Code = ?""";
+
+        try (Connection connection = DataConfig.getDataSource().getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, baseCurrencyCode);
+            preparedStatement.setString(2, targetCurrencyCode);
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                if (rs.next()) {
+                    return mapToExchangeRateResponse(rs);
+                }
+            }
+        }
+        return null;
+    }
 
     public static ExchangeRateResponse mapToExchangeRateResponse(ResultSet rs) throws SQLException {
         Currency baseCurrency = Currency.builder()
@@ -145,7 +190,4 @@ public class ExchangeRateDao {
                 .rate((rate))
                 .build();
     }
-
-
-
 }

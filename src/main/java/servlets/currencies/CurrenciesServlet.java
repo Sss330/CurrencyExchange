@@ -38,7 +38,6 @@ public class CurrenciesServlet extends HttpServlet {
         String currencyName = req.getParameter("name");
         String currencySign = req.getParameter("sign");
 
-
         try {
             Currency newCurrency = currencyDao.addNewCurrency(currencyCode, currencyName, currencySign);
 
