@@ -42,21 +42,4 @@ public class PatchExchangeRate extends HttpServlet {
           throw new RuntimeException(e);
         }
     }
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        resp.setContentType("application/json");
-
-        Long base = Long.valueOf(req.getParameter("baseCurrency"));
-        Long target = Long.valueOf(req.getParameter("targetCurrency"));
-
-
-        try {
-            List<ExchangeRateResponse> allExchangeRates = exchangeRateDao.getExchangeRateById(base,target);
-            String jsonResponse = gson.toJson(allExchangeRates);
-            resp.getWriter().write(jsonResponse);
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }

@@ -15,8 +15,10 @@ public class ExchangeCurrencyDao {
         String sql = "SELECT rate FROM ExchangeRates WHERE from_currency = ? AND to_currency = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+
             stmt.setString(1, from);
             stmt.setString(2, to);
+
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return Optional.of(rs.getBigDecimal("rate"));
@@ -27,10 +29,12 @@ public class ExchangeCurrencyDao {
 
     public Optional<BigDecimal> getReverseExchangeRate(String from, String to, Connection connection) throws Exception {
         String sql = "SELECT rate FROM ExchangeRates WHERE from_currency = ? AND to_currency = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, to);
-            stmt.setString(2, from);
-            ResultSet rs = stmt.executeQuery();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, to);
+            preparedStatement.setString(2, from);
+
+            ResultSet rs = preparedStatement.executeQuery();
             if (rs.next()) {
                 BigDecimal reverseRate = BigDecimal.ONE.divide(rs.getBigDecimal("rate"), 4, BigDecimal.ROUND_HALF_UP);
                 return Optional.of(reverseRate);
