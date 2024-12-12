@@ -42,42 +42,6 @@ public class ExchangeRateDao {
         }
         return exchangeRates;
     }
-    public List<ExchangeRateResponse> getExchangeRateById(Long baseCurrency, Long targetCurrency) {
-        List<ExchangeRateResponse> specificExchangeRates = new ArrayList<>();
-        final String queryToGetSpecificExchangeRate = """
-                SELECT 
-                    er.ID AS ExchangeRateId,
-                    bc.ID AS BaseCurrencyId,
-                    bc.Code AS BaseCurrencyCode,
-                    bc.FullName AS BaseCurrencyName,
-                    bc.Sign AS BaseCurrencySign,
-                    tc.ID AS TargetCurrencyId,
-                    tc.Code AS TargetCurrencyCode,
-                    tc.FullName AS TargetCurrencyName,
-                    tc.Sign AS TargetCurrencySign,
-                    er.Rate
-                FROM ExchangeRates er
-                JOIN Currencies bc ON er.BaseCurrencyId = bc.ID
-                JOIN Currencies tc ON er.TargetCurrencyId = tc.ID
-                WHERE bc.ID = ? AND tc.ID = ?;
-                """;
-        try (Connection connection = DataConfig.getDataSource().getConnection();
-             PreparedStatement statement = connection.prepareStatement(queryToGetSpecificExchangeRate)) {
-
-            statement.setLong(1, baseCurrency);
-            statement.setLong(2, targetCurrency);
-
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    specificExchangeRates.add(mapToExchangeRateResponse(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return specificExchangeRates;
-    }
 
     public ExchangeRateResponse addNewExchangeRate(long baseCurrencyId, long targetCurrencyId, BigDecimal rate) throws SQLException {
 
@@ -111,6 +75,7 @@ public class ExchangeRateDao {
         }
     }
 
+    //*не могу реализовать патч метод
     public ExchangeRateResponse patchExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException {
         final String queryToUpdateRate = """
                 UPDATE ExchangeRates er
@@ -152,9 +117,9 @@ public class ExchangeRateDao {
 
         try (Connection connection = DataConfig.getDataSource().getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
             preparedStatement.setString(1, baseCurrencyCode);
             preparedStatement.setString(2, targetCurrencyCode);
+
             try (ResultSet rs = preparedStatement.executeQuery()) {
                 if (rs.next()) {
                     return mapToExchangeRateResponse(rs);
@@ -162,6 +127,22 @@ public class ExchangeRateDao {
             }
         }
         return null;
+    }
+
+    public boolean exchangeRateExists(Long baseCurrencyId, Long targetCurrencyId) throws SQLException {
+
+        String query = "SELECT 1 FROM ExchangeRates WHERE BaseCurrencyId = ? and TargetCurrencyId = ?";
+        try (Connection connection = DataConfig.getDataSource().getConnection();
+
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setLong(1, baseCurrencyId);
+            preparedStatement.setLong(2, targetCurrencyId);
+
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                return rs.next();
+            }
+        }
     }
 
     public static ExchangeRateResponse mapToExchangeRateResponse(ResultSet rs) throws SQLException {

@@ -5,7 +5,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 
 public class DataConfig {
-    private static final String URL = "jdbc:sqlite:C:\\Users\\podvo\\IdeaProjects\\CurrencyExchange\\src\\main\\resources\\identifier.sqlite";
+
+    private static final String URL = "jdbc:sqlite::resource:db/identifier.sqlite";
     private static final HikariDataSource dataSource;
 
     static {

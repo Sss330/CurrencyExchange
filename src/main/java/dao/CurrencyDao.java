@@ -2,6 +2,7 @@ package dao;
 
 import config.DataConfig;
 import model.Currency;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,20 +23,22 @@ public class CurrencyDao {
         return currencies;
     }
 
-    public List<Currency> getCurrencyByCode(String code) throws SQLException {
-        List<Currency> specificCurrency = new ArrayList<>();
+    public Currency getCurrencyByCode(String code) throws SQLException {
+
         String query = "SELECT * FROM Currencies WHERE Code = ?";
 
         try (Connection connection = DataConfig.getDataSource().getConnection();
+
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
             preparedStatement.setString(1, code);
             try (ResultSet rs = preparedStatement.executeQuery()) {
-                while (rs.next()) {
-                    specificCurrency.add(mapToCurrency(rs));
+                if (rs.next()) {
+                    return mapToCurrency(rs);
                 }
             }
         }
-        return specificCurrency;
+        return null;
     }
 
     public Currency addNewCurrency(String code, String fullName, String sign) throws SQLException {
@@ -62,6 +65,22 @@ public class CurrencyDao {
         }
         return currency;
     }
+
+    public boolean currencyExists(String code) throws SQLException {
+        String query = "SELECT 1 FROM Currencies WHERE Code = ?";
+
+        try (Connection connection = DataConfig.getDataSource().getConnection();
+
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, code);
+
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
 
     private static Currency mapToCurrency(ResultSet rs) throws SQLException {
         return Currency.builder()

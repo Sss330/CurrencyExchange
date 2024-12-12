@@ -1,6 +1,7 @@
 package dao;
 
-import model.ExchangeRateResponse;
+import config.DataConfig;
+
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,15 +10,32 @@ import java.util.Optional;
 
 public class ExchangeCurrencyDao {
 
+    public Optional<Integer> getCurrencyIdByCode(String code) throws Exception {
+        String sql = "SELECT ID FROM Currencies WHERE Code = ?";
+        try (Connection connection = DataConfig.getDataSource().getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setString(1, code);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(rs.getInt("ID"));
+            }
+        }
+        return Optional.empty();
+    }
 
-    public Optional<BigDecimal> getDirectExchangeRate(String from, String to, Connection connection) throws Exception {
+    public Optional<BigDecimal> getDirectExchangeRate(String from, String to) throws Exception {
+        Optional<Integer> fromIdOpt = getCurrencyIdByCode(from);
+        Optional<Integer> toIdOpt = getCurrencyIdByCode(to);
 
-        String sql = "SELECT rate FROM ExchangeRates WHERE from_currency = ? AND to_currency = ?";
+        if (fromIdOpt.isEmpty() || toIdOpt.isEmpty()) {
+            return Optional.empty();
+        }
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-
-            stmt.setString(1, from);
-            stmt.setString(2, to);
+        String sql = "SELECT rate FROM ExchangeRates WHERE BaseCurrencyId = ? AND TargetCurrencyId = ?";
+        try (Connection connection = DataConfig.getDataSource().getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, fromIdOpt.get());
+            stmt.setInt(2, toIdOpt.get());
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
@@ -27,14 +45,21 @@ public class ExchangeCurrencyDao {
         return Optional.empty();
     }
 
-    public Optional<BigDecimal> getReverseExchangeRate(String from, String to, Connection connection) throws Exception {
-        String sql = "SELECT rate FROM ExchangeRates WHERE from_currency = ? AND to_currency = ?";
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+    public Optional<BigDecimal> getReverseExchangeRate(String from, String to) throws Exception {
+        Optional<Integer> fromIdOpt = getCurrencyIdByCode(from);
+        Optional<Integer> toIdOpt = getCurrencyIdByCode(to);
 
-            preparedStatement.setString(1, to);
-            preparedStatement.setString(2, from);
+        if (fromIdOpt.isEmpty() || toIdOpt.isEmpty()) {
+            return Optional.empty();
+        }
 
-            ResultSet rs = preparedStatement.executeQuery();
+        String sql = "SELECT rate FROM ExchangeRates WHERE BaseCurrencyId = ? AND TargetCurrencyId = ?";
+        try (Connection connection = DataConfig.getDataSource().getConnection()) {
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            stmt.setInt(1, toIdOpt.get());
+            stmt.setInt(2, fromIdOpt.get());
+
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 BigDecimal reverseRate = BigDecimal.ONE.divide(rs.getBigDecimal("rate"), 4, BigDecimal.ROUND_HALF_UP);
                 return Optional.of(reverseRate);
@@ -43,13 +68,11 @@ public class ExchangeCurrencyDao {
         return Optional.empty();
     }
 
-    public Optional<BigDecimal> getRateViaUSD(String from, String to, Connection connection) throws Exception {
-
-        Optional<BigDecimal> rateFromUSD = getDirectExchangeRate("USD", from, connection);
-        Optional<BigDecimal> rateToUSD = getDirectExchangeRate("USD", to, connection);
+    public Optional<BigDecimal> getRateViaUSD(String from, String to) throws Exception {
+        Optional<BigDecimal> rateFromUSD = getDirectExchangeRate("USD", from);
+        Optional<BigDecimal> rateToUSD = getDirectExchangeRate("USD", to);
 
         if (rateFromUSD.isPresent() && rateToUSD.isPresent()) {
-
             return Optional.of(rateToUSD.get().divide(rateFromUSD.get(), 4, BigDecimal.ROUND_HALF_UP));
         }
         return Optional.empty();

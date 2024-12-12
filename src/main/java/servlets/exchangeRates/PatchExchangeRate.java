@@ -1,3 +1,4 @@
+
 package servlets.exchangeRates;
 
 import com.google.gson.Gson;
@@ -9,14 +10,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.ExchangeRateResponse;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 
-@WebServlet("/exchangeRate")
-public class PatchExchangeRate extends HttpServlet {
 
-    private final ExchangeRateDao exchangeRateDao = new ExchangeRateDao();
+
+public class PatchExchangeRate {
+
+    /*private final ExchangeRateDao exchangeRateDao = new ExchangeRateDao();
     Gson gson = new Gson();
 
     protected void service(HttpServletRequest req, HttpServletResponse resp)   {
@@ -42,4 +42,6 @@ public class PatchExchangeRate extends HttpServlet {
           throw new RuntimeException(e);
         }
     }
+}
+*/
 }
